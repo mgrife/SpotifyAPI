@@ -16,7 +16,7 @@ def CreateToken():
     
 
     data ={}
-    
+
 
     # Encode as Base64
     clientId = "19010435a701468aaaac1fc85ab56058"
@@ -62,15 +62,23 @@ def get_popularity_score(idlist):
     base_url = "https://api.spotify.com/v1/tracks/{id}"
     token = CreateToken()
     headers = {'Authorization': 'Bearer ' + token}
+    with open("Spotify.csv", "w") as f:
 
-    for id in idlist:
-        params = {'id': id}
-        response = requests.get(base_url.format(id = id), headers=headers, params=params).json()
-        print(response['popularity'])
-        print(response['name'])
+        f.write("Artist Name, Song Name, Popularity Score\n")
+
+        for id in idlist:
+            params = {'id': id}
+            response = requests.get(base_url.format(id = id), headers=headers, params=params).json()
+            f.write(response['artists'][0]['name'] + "," + response['name'] + "," +str(response['popularity']) + "\n")
+            print(response['artists'][0]['name'])
+            print(response['popularity'])
+            print(response['name'])
+
+
 
 ids = ['3U5JVgI2x4rDyHGObzJfNf']
 get_popularity_score(ids)
+
 
 
 
