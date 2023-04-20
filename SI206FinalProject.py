@@ -7,11 +7,9 @@ import json
 from secrets import *
 import csv
 import sqlite3
-
 import os
 
 
-# Step 1 - Authorization 
 
 def CreateToken():
         
@@ -41,24 +39,6 @@ def CreateToken():
     
     return token
 
-# def get_top_150():
-#     base_url = "https://api.spotify.com/v1/me/top/{type}"
-#     token = CreateToken()
-#     headers = {'Authorization': 'Bearer ' + token}
-#     # params = {'type': "tracks", 'time_range': "medium_term", "limit":}
-#     # response = requests.get(base_url.format(id = id), headers=headers, params=params).json()
-#     response = requests.get("https://api.spotify.com/v1/charts/top", headers=headers, params={"limit": 150})
-    
-# # Get the names of the top 150 tracks
-#     top_tracks = []
-#     if response.status_code == 200:
-#         data = json.loads(response.text)
-#         for track in data["tracks"]:
-#             print(data["tracks"])
-#             print(track["name"])
-#             top_tracks.append(track["name"])
-
-#     print(top_tracks)
 
 def read_in_top_songs():
     top_song_names = []
@@ -110,17 +90,17 @@ def get_popularity_score(idlist):
             # print(response['popularity'])
             # print(response['name'])
 
-early = get_track_ids(read_in_top_songs())
+#early = get_track_ids(read_in_top_songs())
 #get_popularity_score(early)
 
 def create_Spotify_db():
 
     # Connect to a new database (creates a new file if it doesn't exist)
-        conn = sqlite3.connect('Spotify_Table.db')
-
+        conn = sqlite3.connect('Spotify_And_Youtube_Table.db')
+        cursor = conn.cursor()
         # Create a new table to hold the CSV data
         conn.execute('''CREATE TABLE IF NOT EXISTS Spotify_Table
-                        (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        (
                         Value INT,
                         Artist_Name TEXT,
                         Song_Name TEXT,
@@ -134,10 +114,11 @@ def create_Spotify_db():
             next(csv_reader)
 
             # Insert each row of the CSV data into the table
-            for row in csv_reader:
-                #print(row)
+            for i, row in enumerate(csv_reader):
+                if i >= 25:
+                    break
                 conn.execute("INSERT INTO Spotify_Table (Value, Artist_Name, Song_Name, Popularity) VALUES (?, ?, ?, ?)", row)
-
+                
         # Commit the changes to the database
         conn.commit()
 
@@ -149,11 +130,11 @@ def create_Spotify_db():
 def create_Youtube_db():
 
     # Connect to a new database (creates a new file if it doesn't exist)
-        conn = sqlite3.connect('Spotify_Table.db')
+        conn = sqlite3.connect('Spotify_And_Youtube_Table.db')
 
         # Create a new table to hold the CSV data
         conn.execute('''CREATE TABLE IF NOT EXISTS Youtube_Table
-                        (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        (
                         Value INT,
                         Music_Video TEXT,
                         View_Count INT,
@@ -165,18 +146,42 @@ def create_Youtube_db():
         with open('youtube.csv', 'r') as csv_file:
             csv_reader = csv.reader(csv_file)
 
-            # Skip the header row
+            
             next(csv_reader)
-
-            # Insert each row of the CSV data into the table
-            for row in csv_reader:
-                print(row)
+            for i, row in enumerate(csv_reader):
+                if i >= 25:
+                    break
                 conn.execute("INSERT INTO Youtube_Table (Value, Music_Video, View_Count, Like_Count, Dislike_Count, Comment_Count) VALUES (?, ?, ?, ?, ?, ?)", row)
 
-        # Commit the changes to the database
+    
         conn.commit()
 
         # Close the database connection
         conn.close()
  
-create_Youtube_db()
+#create_Youtube_db()
+
+
+
+def create_text_file_from_DB():
+    conn = sqlite3.connect('Spotify_And_Youtube_Table.db')
+    cur = conn.cursor()
+
+    cur.execute("SELECT DISTINCT Spotify_Table.Song_Name, Spotify_Table.Popularity as Spotify_Popularity,round(Cast(Youtube_Table.Comment_Count+Youtube_Table.Like_Count as REAL)/Cast(Youtube_Table.View_Count as REAL)*1000,4) as Youtube_Enagement_Score From Spotify_Table join Youtube_Table on Youtube_Table.Value= Spotify_Table.value")
+    rows = cur.fetchall()
+
+
+    with open('Spotify_And_YouTube_DB.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([i[0] for i in cur.description])  
+        writer.writerows(rows)
+
+    conn.close()
+
+
+
+
+"""SELECT DISTINCT Spotify_Table.Song_Name, Spotify_Table.Popularity as Spotify_Popularity,round(Cast(Youtube_Table.Comment_Count+Youtube_Table.Like_Count as REAL)/Cast(Youtube_Table.View_Count as REAL)*1000,4) as Youtube_Enagement_Score
+From Spotify_Table
+join Youtube_Table on Youtube_Table.Value= Spotify_Table.value
+"""
