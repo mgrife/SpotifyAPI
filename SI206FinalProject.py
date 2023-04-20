@@ -7,6 +7,10 @@ import json
 from secrets import *
 import csv
 
+
+import os
+
+
 # Step 1 - Authorization 
 
 def CreateToken():
@@ -37,6 +41,37 @@ def CreateToken():
     
     return token
 
+# def get_top_150():
+#     base_url = "https://api.spotify.com/v1/me/top/{type}"
+#     token = CreateToken()
+#     headers = {'Authorization': 'Bearer ' + token}
+#     # params = {'type': "tracks", 'time_range': "medium_term", "limit":}
+#     # response = requests.get(base_url.format(id = id), headers=headers, params=params).json()
+#     response = requests.get("https://api.spotify.com/v1/charts/top", headers=headers, params={"limit": 150})
+    
+# # Get the names of the top 150 tracks
+#     top_tracks = []
+#     if response.status_code == 200:
+#         data = json.loads(response.text)
+#         for track in data["tracks"]:
+#             print(data["tracks"])
+#             print(track["name"])
+#             top_tracks.append(track["name"])
+
+#     print(top_tracks)
+
+def read_in_top_songs():
+    top_song_names = []
+    with open("desktop/charts.csv", "r") as f:
+        
+        next(f)
+        for line in f:
+            
+            top_song_names.append(line.split(",")[2])
+
+    return top_song_names
+
+
 
 
 def get_track_ids(song_names):
@@ -51,12 +86,11 @@ def get_track_ids(song_names):
         response = requests.get(base_url, headers=headers, params=params).json()
         track_id = response['tracks']['items'][0]['id']
         track_ids.append(track_id)
-        
 
     return track_ids
 
-listofsong = ["Unwritten"]
-#print(get_track_ids(listofsong))
+listofsong = ["Unwritten", "You Belong With Me", "Death by a Thousand Cuts", "All too well", "Dress", "Midnight Rain"]
+#print(get_track_ids(read_in_top_songs()))
 
 def get_popularity_score(idlist):
     base_url = "https://api.spotify.com/v1/tracks/{id}"
@@ -70,40 +104,10 @@ def get_popularity_score(idlist):
             params = {'id': id}
             response = requests.get(base_url.format(id = id), headers=headers, params=params).json()
             f.write(response['artists'][0]['name'] + "," + response['name'] + "," +str(response['popularity']) + "\n")
-            print(response['artists'][0]['name'])
-            print(response['popularity'])
-            print(response['name'])
+            # print(response['artists'][0]['name'])
+            # print(response['popularity'])
+            # print(response['name'])
 
+early = get_track_ids(read_in_top_songs())
+get_popularity_score(early)
 
-
-ids = ['3U5JVgI2x4rDyHGObzJfNf']
-get_popularity_score(ids)
-
-
-
-
-        # get the track ID from the first result (if any)
-        # if 'tracks' in response and 'items' in response['tracks'] and len(response['tracks']['items']) > 0:
-        #     track_id = response['tracks']['items'][0]['id']
-        #     track_ids.append(track_id)
-
-
-# def gettoken():
-#     curl -X POST "https://accounts.spotify.com/api/token" 
-#      -H "Content-Type: application/x-www-form-urlencoded" 
-#      -d "grant_type=client_credentials&client_id=your-client-id&client_secret=your-client-secret"
-
-
-#print(CreateToken())
-# Step 2 - Use Access Token to call playlist endpoint
-
-# playlistId = "6dkC25oqwGAIkPneVONR0K"
-# playlistUrl = f"https://api.spotify.com/v1/playlists/{playlistId}"
-# headers = {
-#     "Authorization": "Bearer " + token
-# }
-
-# res = requests.get(url=playlistUrl, headers=headers)
-
-# print(token)
-#print(json.dumps(res.json(), indent=2))
