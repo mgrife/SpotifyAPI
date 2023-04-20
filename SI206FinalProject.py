@@ -19,8 +19,6 @@ def CreateToken():
 
     data ={}
 
-
-    # Encode as Base64
     clientId = "19010435a701468aaaac1fc85ab56058"
     clientSecret = "86d0ad27dfb14dfbbea6698626bff9d8"
 
@@ -86,19 +84,17 @@ def get_popularity_score(idlist):
             writer.writerow([count, response['artists'][0]['name'], response['name'], response['popularity']])
             ##f.writerow(str(count) + "," + response['artists'][0]['name'] + "," +  response['name'] +  "," +str(response['popularity']) + "\n")
             count += 1
-            # print(response['artists'][0]['name'])
-            # print(response['popularity'])
-            # print(response['name'])
+
 
 #early = get_track_ids(read_in_top_songs())
 #get_popularity_score(early)
 
 def create_Spotify_db():
 
-    # Connect to a new database (creates a new file if it doesn't exist)
+  
         conn = sqlite3.connect('Spotify_And_Youtube_Table.db')
         cursor = conn.cursor()
-        # Create a new table to hold the CSV data
+  
         conn.execute('''CREATE TABLE IF NOT EXISTS Spotify_Table
                         (
                         Value INT,
@@ -106,11 +102,11 @@ def create_Spotify_db():
                         Song_Name TEXT,
                         Popularity INT);''')
 
-        # Open the CSV file and read its contents
+   
         with open('Spotify.csv', 'r') as csv_file:
             csv_reader = csv.reader(csv_file)
 
-            # Skip the header row
+           
             next(csv_reader)
 
             # Insert each row of the CSV data into the table
